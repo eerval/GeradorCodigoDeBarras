@@ -1,7 +1,7 @@
 // ==========================================================
 // worker.js
 // Script executado em uma thread separada (Web Worker)
-// Versão 6: Implementa a formatação final de preço no padrão BR (vírgula)
+// Versão 7: Corrige o erro de interpretação de valor sem separador decimal (125099 -> 1250,99)
 // ==========================================================
 
 // 1. Importar a biblioteca SheetJS (deve ser feito via importScripts)
@@ -84,7 +84,7 @@ function validateLayout(headers) {
 }
 
 // ==========================================================
-// FUNÇÃO DE LIMPEZA E NORMALIZAÇÃO DE PREÇOS (CORRIGIDO PARA SAÍDA BR)
+// FUNÇÃO DE LIMPEZA E NORMALIZAÇÃO DE PREÇOS (CORRIGIDO PARA INFERÊNCIA DECIMAL)
 // ==========================================================
 function cleanAndNormalizePrice(value) {
     if (value === null || value === undefined) {
@@ -96,25 +96,42 @@ function cleanAndNormalizePrice(value) {
     }
 
     // 1. Remove R$, e espaços
-    strValue = strValue.replace(/[R$\s]/g, ''); 
-    
-    // 2. Remove o separador de milhar (ponto)
-    strValue = strValue.replace(/\./g, ''); 
-    
-    // 3. Substitui o separador decimal (vírgula) pelo ponto (para o JS)
-    strValue = strValue.replace(/,/g, '.');
-    
-    const numericValue = parseFloat(strValue);
+    let cleanedValue = strValue.replace(/[R$\s]/g, ''); 
 
-    // 4. Verifica se é válido
+    // 2. Tenta identificar se o valor não possui separador decimal (vírgula ou ponto).
+    if (!cleanedValue.includes(',') && !cleanedValue.includes('.')) {
+        // Se for uma string numérica longa sem separador (ex: "125099"),
+        // assumimos que os últimos dois dígitos são os centavos.
+        // Isso transforma "125099" em "1250.99" (para o JS)
+        if (cleanedValue.length > 2) {
+            cleanedValue = cleanedValue.slice(0, -2) + '.' + cleanedValue.slice(-2);
+        } else if (cleanedValue.length === 2) {
+            cleanedValue = '0.' + cleanedValue;
+        } else if (cleanedValue.length === 1) {
+            cleanedValue = '0.0' + cleanedValue;
+        } else {
+            cleanedValue = '0.00';
+        }
+    } else {
+        // Se houver separador:
+        // A. Remove separador de milhar (ponto)
+        cleanedValue = cleanedValue.replace(/\./g, ''); 
+        
+        // B. Substitui o separador decimal (vírgula) pelo ponto (para o JS)
+        cleanedValue = cleanedValue.replace(/,/g, '.');
+    }
+    
+    const numericValue = parseFloat(cleanedValue);
+
+    // 3. Verifica se é válido
     if (isNaN(numericValue) || numericValue < 0) {
         return '0,00'; // Formato BR
     }
 
-    // 5. Formata o número com 2 casas decimais (padrão JS com ponto)
+    // 4. Formata o número com 2 casas decimais (padrão JS com ponto)
     let formattedValue = numericValue.toFixed(2); 
 
-    // 6. Retorna a string com a VÍRGULA, pronta para ser salva como TEXTO no XLSX
+    // 5. Retorna a string com a VÍRGULA, pronta para ser salva como TEXTO no XLSX
     return formattedValue.replace('.', ','); 
 }
 
