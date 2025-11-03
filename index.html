@@ -265,7 +265,7 @@
             margin: 0 10px;
         }
         
-        /* Estilo para indicar que o cartão de erro é clicável */
+        /* NOVO: Estilo para indicar que o cartão de erro é clicável */
         .stat-card.stat-error {
             cursor: pointer; 
         }
@@ -694,7 +694,7 @@
         let layoutValid = false;
         let dataProcessorWorker = null; 
         
-        // Melhoria 1: Variável para navegação de logs de erro
+        // NOVO: Variável para navegação de logs de erro
         let currentErrorLogIndex = 0; 
         
         const expectedLayout = [
@@ -798,15 +798,16 @@
             btnDownloadFinal.addEventListener('click', downloadSpreadsheet);
             btnNewValidation.addEventListener('click', resetApp);
             
-            // Melhoria 1: Inicializa o listener no cartão de erro
+            // NOVO: Inicializa o listener no cartão de erro
             initializeErrorNavigation(); 
 
             console.log('Event listeners inicializados com sucesso');
         }
 
-        // Inicializa o Web Worker
+        // NOVO: Inicializa o Web Worker e define o handler de mensagens
         function initializeWorker() {
             if (window.Worker) {
+                // Tenta criar o worker no arquivo local 'worker.js'
                 dataProcessorWorker = new Worker('worker.js'); 
                 dataProcessorWorker.onmessage = handleWorkerMessage;
                 dataProcessorWorker.onerror = (e) => {
@@ -820,6 +821,10 @@
             }
         }
         
+        // ============================
+        // FUNÇÕES WORKER HANDLERS
+        // ============================
+
         // Handler de mensagens do Worker
         function handleWorkerMessage(e) {
             const { status, action, errors, headers: newHeaders, spreadsheetData: newData, validationResults: newResults, correctedSpreadsheetData, message, progress, processedRows, totalRows } = e.data;
@@ -894,7 +899,7 @@
         // FUNÇÕES DE NAVEGAÇÃO E LÓGICA
         // ============================
         
-        // Função de navegação de passos (com reset de índice de erro)
+        // FUNÇÃO DE NAVEGAÇÃO DE PASSOS (AGORA COM RESET DE ÍNDICE)
         function showStep(step) {
             console.log(`Mudando para etapa ${step}`);
             
@@ -923,7 +928,7 @@
             } else if (step === 3) {
                 step3.classList.add('active');
                 renderValidationLog();
-                // Melhoria 1: Reseta o índice de erro ao entrar na tela de Logs
+                // MELHORIA: Reseta o índice de erro ao entrar na tela de Logs
                 currentErrorLogIndex = 0; 
             } else if (step === 4) {
                 successScreen.style.display = 'block';
@@ -932,7 +937,7 @@
             currentStep = step;
         }
 
-        // Função de reset da aplicação (com reset de índice de erro)
+        // FUNÇÃO DE RESET DA APLICAÇÃO (AGORA COM RESET DE ÍNDICE)
         function resetApp() {
             spreadsheetData = [];
             headers = [];
@@ -947,13 +952,13 @@
             const layoutErrors = step1.querySelectorAll('.layout-error');
             layoutErrors.forEach(error => error.remove());
             
-            // Melhoria 1: Reseta o índice de erro
+            // MELHORIA: Reseta o índice de erro
             currentErrorLogIndex = 0;
             
             showStep(1);
         }
 
-        // Função de upload
+        // FUNÇÃO DE UPLOAD (MANTIDA)
         function handleFileUpload() {
             const file = fileInput.files[0];
             if (!file) return;
@@ -987,7 +992,7 @@
                 dataProcessorWorker.postMessage({ 
                     action: 'PROCESS_FILE', 
                     payload: { fileArrayBuffer } 
-                }, [fileArrayBuffer]); 
+                }, [fileArrayBuffer]); // Transferência de buffer para otimização
             };
             
             reader.onerror = function() {
@@ -998,7 +1003,7 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Melhoria 1: Função para inicializar o listener no cartão de erro
+        // FUNÇÃO DE NAVEGAÇÃO DE ERROS (A MELHORIA)
         function initializeErrorNavigation() {
             const statErrorCard = document.querySelector('.stat-error');
             if (statErrorCard) {
@@ -1006,7 +1011,6 @@
             }
         }
         
-        // Melhoria 1: Função para navegar para o próximo log de erro
         function scrollToNextErrorLog() {
             const errorLogs = logContainer.querySelectorAll('.log-error');
             
@@ -1015,28 +1019,35 @@
                 return; 
             }
 
+            // Pega o elemento de log de erro no índice atual
             const nextErrorLog = errorLogs[currentErrorLogIndex];
 
             if (nextErrorLog) {
+                // 1. Rola o contêiner de log para o elemento
                 nextErrorLog.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+                // 2. Adiciona um destaque temporário
                 nextErrorLog.classList.add('highlight-cell'); 
                 setTimeout(() => {
                     nextErrorLog.classList.remove('highlight-cell');
                 }, 3000);
                 
+                // 3. Atualiza o índice, ciclando de volta para o primeiro
                 currentErrorLogIndex = (currentErrorLogIndex + 1) % errorLogs.length;
                 
             } else {
+                // Reinicia o ciclo (se o índice atual estiver fora do array por algum motivo)
                 currentErrorLogIndex = 0;
                 scrollToNextErrorLog(); 
             }
         }
         
+        // MANTIDAS: Funções de visualização e utilidade
+        
         function downloadTemplate() {
             const worksheetData = [
-                expectedLayout, 
-                ...Array(5).fill().map(() => expectedLayout.map(() => ''))
+                expectedLayout, // Cabeçalhos
+                ...Array(5).fill().map(() => expectedLayout.map(() => '')) // 5 linhas vazias
             ];
             
             const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
@@ -1218,52 +1229,13 @@
             errorRowsEl.textContent = errorRows;
         }
         
-        // MELHORIA 2: Função de Download com Forçamento de Tipo Texto nas Colunas de Preço/Dimensão
         function downloadSpreadsheet() {
             const worksheetData = [
                 headers, // Cabeçalhos
                 ...spreadsheetData.map(row => headers.map(header => row[header]))
             ];
             
-            // 1. Criar a planilha.
-            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData, {
-                cellDates: false // Evita inferência de datas
-            });
-            
-            // 2. Definir as colunas que precisam ser forçadas como TEXTO (para manter a vírgula)
-            const columnsToForceText = [
-                'PREÇO DE CUSTO', 
-                'PREÇO DE VENDA', 
-                'ALTURA (cm)', 
-                'LARGURA (cm)', 
-                'PROFUNDIDADE (cm)', 
-                'PESO LIQUIDO (kg)', 
-                'PESO BRUTO (kg)'
-            ];
-            
-            // Mapear os índices das colunas
-            const textColumnsIndices = columnsToForceText
-                .map(col => headers.indexOf(col))
-                .filter(index => index !== -1);
-            
-            // 3. Iterar sobre as células para forçar o tipo 's' (string)
-            worksheetData.forEach((row, rowIndex) => {
-                textColumnsIndices.forEach(colIndex => {
-                    // rowIndex começa do 0 (cabeçalho), mas a exportação usa células.
-                    // Precisamos de r > 0 para dados (assumindo que o cabeçalho é a linha 0)
-                    if (rowIndex === 0) return; 
-
-                    const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-                    const cell = worksheet[cellRef];
-                    
-                    if (cell && cell.v !== undefined) {
-                        cell.v = String(cell.v); 
-                        cell.t = 's'; // Tipo = String
-                    }
-                });
-            });
-
-            // 4. Exportar o arquivo
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Planilha Validada');
             
