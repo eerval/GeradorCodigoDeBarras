@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Códigos de Barras EAN13 - Sistema Avançado</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        .dark-mode {
+            --primary-color: #3498db;
+            --secondary-color: #ecf0f1;
+            --accent-color: #e74c3c;
+            --light-color: #2c3e50;
+            --dark-color: #ecf0f1;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+        
+        body.dark-mode {
+            background-color: #1a1a2e;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .dark-mode header {
+            background-color: #162447;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: var(--transition);
+        }
+        
+        .dark-mode .card {
+            background-color: #162447;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .input-with-icon {
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .dark-mode input, .dark-mode textarea {
+            background-color: #1f4068;
+            border-color: #1f4068;
+            color: var(--dark-color);
+        }
+        
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--transition);
+            text-align: center;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-danger {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .barcode-container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            transition: var(--transition);
+        }
+        
+        .dark-mode .barcode-container {
+            background-color: #162447;
+        }
+        
+        .barcode-display {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .dark-mode .barcode-display {
+            background: #1f4068;
+        }
+        
+        .product-info {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: 6px;
+            text-align: left;
+            transition: var(--transition);
+        }
+        
+        .dark-mode .product-info {
+            background-color: #1f4068;
+        }
+        
+        .product-info p {
+            margin-bottom: 8px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .error-message {
+            color: var(--accent-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success-message {
+            color: var(--success-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .history-section {
+            margin-top: 30px;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition);
+        }
+        
+        .dark-mode .history-item {
+            border-bottom-color: #1f4068;
+        }
+        
+        .history-item:hover {
+            background-color: var(--light-color);
+        }
+        
+        .dark-mode .history-item:hover {
+            background-color: #1f4068;
+        }
+        
+        .history-info {
+            flex: 1;
+        }
+        
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .history-empty {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .auto-generate {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Estilos para impressão */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .barcode-container,
+            .barcode-container * {
+                visibility: visible;
+            }
+            
+            .barcode-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 20px !important;
+            }
+            
+            .actions,
+            .theme-toggle,
+            .history-section,
+            header,
+            footer,
+            .card:not(.barcode-container) {
+                display: none !important;
+            }
+            
+            .barcode-display {
+                box-shadow: none !important;
+                background: white !important;
+                margin: 0 auto !important;
+                max-width: 100% !important;
+            }
+            
+            .product-info {
+                background: #f8f9fa !important;
+                color: black !important;
+                margin-top: 20px !important;
+            }
+            
+            .product-info p {
+                color: black !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .theme-toggle {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gerador de Códigos de Barras EAN13</h1>
+            <p class="subtitle">Sistema avançado para geração de códigos de barras no padrão brasileiro</p>
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+        
+        <main>
+            <div class="card">
+                <h2><i class="fas fa-cube"></i> Informações do Produto</h2>
+                <form id="barcode-form">
+                    <div class="form-group">
+                        <label for="cnpj">CNPJ da Empresa</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-building input-icon"></i>
+                            <input type="text" id="cnpj" placeholder="Digite o CNPJ (14 números)" maxlength="18">
+                        </div>
+                        <div class="error-message" id="cnpj-error">CNPJ inválido. Digite um CNPJ válido com 14 números.</div>
+                        <div class="success-message" id="cnpj-success">CNPJ válido!</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sku">ID/SKU do Produto</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-barcode input-icon"></i>
+                            <input type="text" id="sku" placeholder="Digite o ID/SKU (até 10 caracteres alfanuméricos)" maxlength="10">
+                        </div>
+                        <div class="error-message" id="sku-error">ID/SKU deve ter entre 1 e 10 caracteres alfanuméricos.</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-name">Nome do Produto</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-tag input-icon"></i>
+                            <input type="text" id="product-name" placeholder="Digite o nome do produto">
+                        </div>
+                        <div class="error-message" id="name-error">Nome do produto é obrigatório.</div>
+                    </div>
+                    
+                    <div class="auto-generate">
+                        <label for="auto-generate">Gerar automaticamente ao preencher campos</label>
+                        <label class="switch">
+                            <input type="checkbox" id="auto-generate">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="actions">
+                        <button type="button" id="generate-btn" class="btn">
+                            <i class="fas fa-barcode"></i> Gerar Código de Barras
+                        </button>
+                        <button type="button" id="clear-btn" class="btn btn-outline">
+                            <i class="fas fa-eraser"></i> Limpar Campos
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-qrcode"></i> Código de Barras Gerado</h2>
+                <div class="barcode-container" id="barcode-result">
+                    <div class="barcode-display">
+                        <svg id="barcode"></svg>
+                    </div>
+                    
+                    <div class="product-info">
+                        <p><strong>CNPJ:</strong> <span id="display-cnpj"></span></p>
+                        <p><strong>ID/SKU:</strong> <span id="display-sku"></span></p>
+                        <p><strong>Produto:</strong> <span id="display-name"></span></p>
+                        <p><strong>Código EAN13:</strong> <span id="display-ean13"></span></p>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="print-btn" class="btn btn-success">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                        <button id="download-png-btn" class="btn">
+                            <i class="fas fa-download"></i> Download PNG
+                        </button>
+                        <button id="download-svg-btn" class="btn">
+                            <i class="fas fa-download"></i> Download SVG
+                        </button>
+                        <button id="new-code-btn" class="btn btn-danger">
+                            <i class="fas fa-plus"></i> Novo Código
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card history-section">
+                <h2><i class="fas fa-history"></i> Histórico de Códigos Gerados</h2>
+                <div class="history-list" id="history-list">
+                    <div class="history-empty" id="history-empty">
+                        Nenhum código gerado ainda. Os códigos aparecerão aqui após a geração.
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="clear-history-btn" class="btn btn-outline">
+                        <i class="fas fa-trash"></i> Limpar Histórico
+                    </button>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Sistema de Geração de Códigos de Barras EAN13 - Padrão Brasileiro | Versão 2.5 (Hash)</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const cnpjInput = document.getElementById('cnpj');
+            const skuInput = document.getElementById('sku');
+            const productNameInput = document.getElementById('product-name');
+            const generateBtn = document.getElementById('generate-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const barcodeResult = document.getElementById('barcode-result');
+            const barcodeSvg = document.getElementById('barcode');
+            const displayCnpj = document.getElementById('display-cnpj');
+            const displaySku = document.getElementById('display-sku');
+            const displayName = document.getElementById('display-name');
+            const displayEan13 = document.getElementById('display-ean13');
+            const printBtn = document.getElementById('print-btn');
+            const downloadPngBtn = document.getElementById('download-png-btn');
+            const downloadSvgBtn = document.getElementById('download-svg-btn');
+            const newCodeBtn = document.getElementById('new-code-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+            const autoGenerateToggle = document.getElementById('auto-generate');
+            const historyList = document.getElementById('history-list');
+            const historyEmpty = document.getElementById('history-empty');
+            const clearHistoryBtn = document.getElementById('clear-history-btn');
+            
+            // Histórico de códigos
+            let history = JSON.parse(localStorage.getItem('barcodeHistory')) || [];
+            
+            // Inicializar histórico
+            updateHistory();
+            
+            // Máscara para CNPJ
+            cnpjInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                
+                // Aplicar máscara: XX.XXX.XXX/XXXX-XX
+                if (value.length > 12) {
+                    value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+                } else if (value.length > 8) {
+                    value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{0,4})/, '$1.$2.$3/$4');
+                } else if (value.length > 5) {
+                    value = value.replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
+                } else if (value.length > 2) {
+                    value = value.replace(/(\d{2})(\d{0,3})/, '$1.$2');
+                }
+                
+                e.target.value = value;
+                
+                // Validar CNPJ em tempo real
+                validateCNPJ(value);
+                
+                // Gerar automaticamente se a opção estiver ativada
+                if (autoGenerateToggle.checked && isFormValid()) {
+                    generateBarcode();
+                }
+            });
+            
+            // Validação de CNPJ
+            function validateCNPJ(cnpj) {
+                const cnpjClean = cnpj.replace(/\D/g, '');
+                const cnpjError = document.getElementById('cnpj-error');
+                const cnpjSuccess = document.getElementById('cnpj-success');
+                
+                if (cnpjClean.length !== 14) {
+                    cnpjError.style.display = 'block';
+                    cnpjSuccess.style.display = 'none';
+                    return false;
+                }
+                
+                // Algoritmo de validação de CNPJ
+                if (!isValidCNPJ(cnpjClean)) {
+                    cnpjError.style.display = 'block';
+                    cnpjSuccess.style.display = 'none';
+                    return false;
+                }
+                
+                cnpjError.style.display = 'none';
+                cnpjSuccess.style.display = 'block';
+                return true;
+            }
+            
+            // Algoritmo de validação de CNPJ
+            function isValidCNPJ(cnpj) {
+                if (cnpj.length !== 14) return false;
+                
+                // Eliminar CNPJs inválidos conhecidos
+                if (/^(\d)\1+$/.test(cnpj)) return false;
+                
+                // Validar DVs
+                let tamanho = cnpj.length - 2;
+                let numeros = cnpj.substring(0, tamanho);
+                let digitos = cnpj.substring(tamanho);
+                let soma = 0;
+                let pos = tamanho - 7;
+                
+                for (let i = tamanho; i >= 1; i--) {
+                    soma += numeros.charAt(tamanho - i) * pos--;
+                    if (pos < 2) pos = 9;
+                }
+                
+                let resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+                if (resultado != digitos.charAt(0)) return false;
+                
+                tamanho = tamanho + 1;
+                numeros = cnpj.substring(0, tamanho);
+                soma = 0;
+                pos = tamanho - 7;
+                
+                for (let i = tamanho; i >= 1; i--) {
+                    soma += numeros.charAt(tamanho - i) * pos--;
+                    if (pos < 2) pos = 9;
+                }
+                
+                resultado = soma % 11 < 2 ? 0 : 11 - soma % 11;
+                if (resultado != digitos.charAt(1)) return false;
+                
+                return true;
+            }
+            
+            // Eventos para geração automática - SKU AGORA PODE TER LETRAS
+            skuInput.addEventListener('input', function() {
+                // Remove caracteres que não são letras ou números
+                let value = this.value.replace(/[^a-zA-Z0-9]/g, ''); 
+                this.value = value.substring(0, 10); // Limita a 10 caracteres
+                
+                if (autoGenerateToggle.checked && isFormValid()) {
+                    generateBarcode();
+                }
+            });
+            
+            productNameInput.addEventListener('input', function() {
+                if (autoGenerateToggle.checked && isFormValid()) {
+                    generateBarcode();
+                }
+            });
+            
+            // Gerar código EAN13
+            generateBtn.addEventListener('click', generateBarcode);
+            
+            function generateBarcode() {
+                // Validar campos
+                if (!validateForm()) {
+                    return;
+                }
+                
+                const cnpj = cnpjInput.value.replace(/\D/g, '');
+                const sku = skuInput.value;
+                const productName = productNameInput.value;
+                
+                // Gerar código EAN13
+                const ean13 = generateEAN13(cnpj, sku);
+                
+                // Exibir informações
+                displayCnpj.textContent = cnpjInput.value;
+                displaySku.textContent = sku;
+                displayName.textContent = productName;
+                displayEan13.textContent = ean13;
+                
+                // Limpar SVG anterior
+                barcodeSvg.innerHTML = '';
+                
+                // Gerar código de barras
+                try {
+                    JsBarcode("#barcode", ean13, {
+                        format: "EAN13",
+                        width: 2,
+                        height: 100,
+                        displayValue: true,
+                        fontSize: 16,
+                        margin: 10
+                    });
+                } catch (error) {
+                    console.error("Erro ao gerar código de barras:", error);
+                    alert("Erro ao gerar código de barras. Verifique os dados informados.");
+                    return;
+                }
+                
+                // Exibir resultado
+                barcodeResult.style.display = 'block';
+                
+                // Adicionar ao histórico
+                addToHistory({
+                    cnpj: cnpjInput.value,
+                    sku: sku,
+                    productName: productName,
+                    ean13: ean13,
+                    timestamp: new Date().toLocaleString()
+                });
+            }
+            
+            // Função para validar formulário
+            function validateForm() {
+                let isValid = true;
+                
+                // Validar CNPJ
+                if (!validateCNPJ(cnpjInput.value)) {
+                    document.getElementById('cnpj-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('cnpj-error').style.display = 'none';
+                }
+                
+                // Validar SKU (Alfanumérico)
+                const skuClean = skuInput.value.replace(/[^a-zA-Z0-9]/g, '');
+                if (skuClean.length === 0 || skuClean.length > 10) {
+                    document.getElementById('sku-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('sku-error').style.display = 'none';
+                }
+                
+                // Validar nome do produto
+                if (productNameInput.value.trim() === '') {
+                    document.getElementById('name-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('name-error').style.display = 'none';
+                }
+                
+                return isValid;
+            }
+            
+            // Função para verificar se o formulário é válido (para geração automática)
+            function isFormValid() {
+                const cnpjClean = cnpjInput.value.replace(/\D/g, '');
+                const skuClean = skuInput.value.replace(/[^a-zA-Z0-9]/g, '');
+                
+                return cnpjClean.length === 14 && 
+                       isValidCNPJ(cnpjClean) &&
+                       skuClean.length > 0 && 
+                       skuClean.length <= 10 &&
+                       productNameInput.value.trim() !== '';
+            }
+            
+            // Mapeamento alfanumérico para valor numérico (para o cálculo do hash)
+            function alphanumericToNumericValue(char) {
+                const c = char.toUpperCase();
+                // 0-9: valor 0 a 9
+                if (c >= '0' && c <= '9') {
+                    return parseInt(c); 
+                }
+                // A-Z: valor 10 a 35
+                if (c >= 'A' && c <= 'Z') {
+                    return c.charCodeAt(0) - 55; // A=10, B=11, etc.
+                }
+                return 0; 
+            }
+            
+            // Função para gerar código EAN13 - CORREÇÃO DE HASH PARA MAIOR VARIAÇÃO
+            function generateEAN13(cnpj, sku) {
+                // Estrutura adotada (12 dígitos): 3 País + 5 CNPJ + 4 SKU (Hash Numérico).
+                
+                // 1. Prefixo do País (3 dígitos): 789 (Brasil)
+                const countryCode = '789';
+                
+                // 2. Identificador da Empresa (5 dígitos): Usar os primeiros 5 dígitos do CNPJ
+                let companyCode = cnpj.substring(0, 5).padEnd(5, '0');
+                
+                // 3. Gerar o hash numérico do SKU para máxima variação.
+                let hashSum = 0;
+                for (let i = 0; i < sku.length; i++) {
+                    const value = alphanumericToNumericValue(sku[i]);
+                    // Incorpora o valor do caractere e sua posição para diferenciar SKUs com mesmos caracteres em ordem diferente.
+                    hashSum += value * (i + 1); 
+                }
+                
+                // Usamos o módulo 10000 do hash para obter uma string de 4 dígitos (0000 a 9999).
+                const hashValue = (hashSum % 10000).toString().padStart(4, '0');
+                
+                // ItemCode é o hash de 4 dígitos
+                let itemCode = hashValue;
+                
+                // Concatenação: 789 + 5 CNPJ + 4 SKU (Hash)
+                let combinedCode = countryCode + companyCode + itemCode;
+                
+                // Garantir que temos exatamente 12 dígitos
+                combinedCode = combinedCode.substring(0, 12);
+                
+                console.log("SKU original:", sku);
+                console.log("SKU Hash (4 dígitos):", itemCode);
+                console.log("Código base (12 dígitos):", combinedCode);
+                
+                // 4. Calcular dígito verificador EAN-13 (check digit)
+                let sum = 0;
+                for (let i = 0; i < 12; i++) {
+                    let digit = parseInt(combinedCode[i]);
+                    // EAN13: Índice par (0, 2, 4...) = x1; Índice ímpar (1, 3, 5...) = x3.
+                    sum += (i % 2 === 0) ? digit : digit * 3;
+                }
+                
+                let checkDigit = (10 - (sum % 10)) % 10;
+                
+                return combinedCode + checkDigit;
+            }
+            
+            // Botão de impressão - MELHORIA 2: TAMANHO PADRÃO PARA ETIQUETAS
+            printBtn.addEventListener('click', function() {
+                // Criar uma nova janela para impressão com tamanho otimizado para etiquetas
+                const printWindow = window.open('', '_blank');
+                const printContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Código de Barras - ${displayName.textContent}</title>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                margin: 0;
+                                padding: 10mm;
+                                text-align: center;
+                                width: 80mm;
+                                height: 50mm;
+                            }
+                            .barcode-container {
+                                width: 100%;
+                                margin: 0 auto;
+                                text-align: center;
+                            }
+                            .barcode-svg {
+                                width: 60mm !important;
+                                height: 20mm !important;
+                                max-width: 100%;
+                            }
+                            .product-info {
+                                margin-top: 5mm;
+                                text-align: center;
+                                font-size: 10px;
+                                line-height: 1.2;
+                            }
+                            .product-info p {
+                                margin: 2px 0;
+                            }
+                            .ean-code {
+                                font-family: 'Courier New', monospace;
+                                font-size: 12px;
+                                font-weight: bold;
+                                letter-spacing: 1px;
+                            }
+                            @media print {
+                                body {
+                                    margin: 0;
+                                    padding: 5mm;
+                                }
+                                .barcode-container {
+                                    page-break-inside: avoid;
+                                }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="barcode-container">
+                            <svg class="barcode-svg" viewBox="0 0 200 80">
+                                ${barcodeSvg.innerHTML}
+                            </svg>
+                            <div class="product-info">
+                                <p><strong>${displayName.textContent}</strong></p>
+                                <p>SKU: ${displaySku.textContent} | CNPJ: ${displayCnpj.textContent.replace(/\D/g, '').substring(0, 8)}</p>
+                                <p class="ean-code">${displayEan13.textContent}</p>
+                            </div>
+                        </div>
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                setTimeout(function() {
+                                    window.close();
+                                }, 500);
+                            };
+                        <\/script>
+                    </body>
+                    </html>
+                `;
+                
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+            });
+            
+            // Botão de download PNG
+            downloadPngBtn.addEventListener('click', function() {
+                const svgData = new XMLSerializer().serializeToString(barcodeSvg);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    const pngFile = canvas.toDataURL('image/png');
+                    const downloadLink = document.createElement('a');
+                    downloadLink.download = `codigo_barras_${displayEan13.textContent}.png`;
+                    downloadLink.href = pngFile;
+                    downloadLink.click();
+                };
+                
+                img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+            });
+            
+            // Botão de download SVG
+            downloadSvgBtn.addEventListener('click', function() {
+                const svgData = new XMLSerializer().serializeToString(barcodeSvg);
+                const blob = new Blob([svgData], {type: 'image/svg+xml'});
+                const url = URL.createObjectURL(blob);
+                const downloadLink = document.createElement('a');
+                downloadLink.download = `codigo_barras_${displayEan13.textContent}.svg`;
+                downloadLink.href = url;
+                downloadLink.click();
+                URL.revokeObjectURL(url);
+            });
+            
+            // Botão para novo código
+            newCodeBtn.addEventListener('click', function() {
+                // Limpar formulário
+                document.getElementById('barcode-form').reset();
+                
+                // Ocultar resultado
+                barcodeResult.style.display = 'none';
+                
+                // Limpar mensagens de erro
+                document.querySelectorAll('.error-message').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                document.getElementById('cnpj-success').style.display = 'none';
+            });
+            
+            // Botão limpar campos
+            clearBtn.addEventListener('click', function() {
+                document.getElementById('barcode-form').reset();
+                barcodeResult.style.display = 'none';
+                document.querySelectorAll('.error-message').forEach(el => {
+                    el.style.display = 'none';
+                });
+                document.getElementById('cnpj-success').style.display = 'none';
+            });
+            
+            // Alternar tema
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const icon = themeToggle.querySelector('i');
+                if (document.body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+            
+            // Adicionar ao histórico
+            function addToHistory(item) {
+                history.unshift(item);
+                if (history.length > 10) {
+                    history = history.slice(0, 10);
+                }
+                localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                updateHistory();
+            }
+            
+            // Atualizar histórico na tela
+            function updateHistory() {
+                if (history.length === 0) {
+                    historyEmpty.style.display = 'block';
+                    historyList.innerHTML = '';
+                    historyList.appendChild(historyEmpty);
+                    return;
+                }
+                
+                historyEmpty.style.display = 'none';
+                historyList.innerHTML = '';
+                
+                history.forEach((item, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-info">
+                            <strong>${item.productName}</strong>
+                            <div class="info-text">EAN13: ${item.ean13} | ${item.timestamp}</div>
+                        </div>
+                        <div class="history-actions">
+                            <button class="btn btn-outline history-view-btn" data-index="${index}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline history-remove-btn" data-index="${index}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+                
+                // Adicionar eventos aos botões do histórico
+                document.querySelectorAll('.history-view-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        viewHistoryItem(index);
+                    });
+                });
+                
+                document.querySelectorAll('.history-remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = this.getAttribute('data-index');
+                        removeHistoryItem(index);
+                    });
+                });
+            }
+            
+            // Visualizar item do histórico
+            function viewHistoryItem(index) {
+                const item = history[index];
+                cnpjInput.value = item.cnpj;
+                skuInput.value = item.sku;
+                productNameInput.value = item.productName;
+                
+                // Validar CNPJ
+                validateCNPJ(item.cnpj);
+                
+                // Gerar código de barras
+                generateBarcode();
+            }
+            
+            // Remover item do histórico
+            function removeHistoryItem(index) {
+                history.splice(index, 1);
+                localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                updateHistory();
+            }
+            
+            // Limpar histórico
+            clearHistoryBtn.addEventListener('click', function() {
+                if (confirm('Tem certeza que deseja limpar todo o histórico?')) {
+                    history = [];
+                    localStorage.setItem('barcodeHistory', JSON.stringify(history));
+                    updateHistory();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
